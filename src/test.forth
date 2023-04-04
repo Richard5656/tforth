@@ -16,38 +16,33 @@ buffer @ print CR
 )
 S" opop" drop PRINT 
 
+VARIABLE x
 0 code !
+0 x !
 
 
-( 0 10 FOR GFI . CR REPEAT )
 
 
-(
-: ADD S" POP EAX POP EBX ADD EAX EBX PUSH EAX" DROP PRINT ;
 
-ADD
 
-S" lore" DROP PRINT
-0 10 FOR 
-	GFI .
+
+WHILE
+
+	WHILE
+				90 EMIT
+				code @ .
+				code @ 1 + code !
+				10 EMIT
+	code @ 10 <	
+	REPEAT
+	
+	89 EMIT
+	x @ .
+	x @ 1 + x !
+	10 EMIT
+	 x @ 2 <
 REPEAT
 
-)
-
-
-0 code !
-
-EX code @ 100 < WHILE
-	code @ .
-	code @ 1 + code !
-REPEAT
-
-
-(
-0 10 FOR 
-	GFI . CR
-REPEAT
-)
 
 90 90 = if 
 	65 EMIT
