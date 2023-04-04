@@ -7,11 +7,11 @@
 : BEGIN SBLK ;
 : UNTIL EBLK INVERT RKBLKC ;
 
-: EX SBLK ;
+: WHILE  INVERT SKBLKC SBLK ;
 
-( while for and do loop are not ready yet)
-: WHILE SKBLKC ;
-: REPEAT RKBLKC EBLK ;
+
+
+: REPEAT   EBLK SRKBLK ;
 
 ( Syntax 
 	EX [condition] WHILE REPEAT
