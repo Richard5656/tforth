@@ -71,6 +71,8 @@ VARIABLE bp ( bp[0] will ussually be the return )
 
 : >r sp @ ! sp @ 1 + sp ! ( Increment stack ) ;
 : r> sp @ 1 - sp ! ( decrement stack ) sp @ @ ;
+: r@ sp @ ( copy on to data stack from return stack ) ;
+
 : LBPA bp + @ ; ( [mem_loc] LDBA )
 : SBPA bp + ! ; ( [mem_loc] [offset] SDBA )
 VARIABLE array_area_start
