@@ -1,6 +1,5 @@
 : CR 10 EMIT ;
-: IF INVERT SKBLK SBLK ;
-: ELSE SSKBLK EBLK SBLK ;
+: IF INVERT SKBLKC  SBLK ;
 : THEN EBLK ;
 
 : BEGIN SBLK ;
@@ -11,6 +10,7 @@
 
 : WHILE INVERT SSKBLKC ;
 
+
 : REPEAT SRKBLK EBLK ;
 
 ( Syntax
@@ -20,40 +20,29 @@
 
 : DUP2 DUP >r SWAP DUP >r SWAP r> r> ; ( duplicates 2 items on the stack )
 
-: FOR SBLK SWAP 1 +  DUP2 < INVERT SKBLKC ;
-
+: FOR 1 + SBLK SWAP 1 +  SWAP DUP2 < INVERT SSKBLKC ;
+: END_FOR SRKBLK EBLK DROP DROP ;
 ( Syntax
-       [start num] [end num] FOR REPEAT
+       [start num] [end num] FOR END_FOR
 )
 
-
-: GFI DUP 1 - ; ( Gets the index of the For loop currently  )
-
-
-: DO ! ! LBL ;
-: LOOP
-     DUP DUP ( duplicates index VARIABLE )
-     @ 1 + SWAP ! ( Increment index )
-     @ SWAP @ < ( Compare )
-       BC ( Branch )
-;
-
-( Syntax
-
-[value] [start varible] [value] [end varible] do
-      [start varible] [end varible]
-      LOOP
-)
-
+: GFI SWAP DUP 1 - >R SWAP R> ; ( Gets the index of the For loop currently  )
 
 
 : PRINT 1 - 
 	BEGIN
+		
+		 
 		1 + 
-		DUP @ EMIT 
+		
+		DUP @ DUP
+		0 = INVERT if
+			EMIT
+		THEN
 		DUP @ 0 =
+		
 	UNTIL 
-;
+; ( Prints out strings )
 
 : dps DUP . CR ; ( debug printer )
 
@@ -64,7 +53,7 @@
 ( temp stack functions for stuff I want to save )
 
 
-VARIABLE sp
+VARIABLE sp ( Start of return stack )
 VARIABLE bp ( bp[0] will ussually be the return )
 7500 sp !
 7000 bp !
@@ -83,20 +72,10 @@ VARIABLE array_area_start
 : GETC @ ;
 
 : { ;
-: } ;
+: } ; 
 
 : ARRACK + @ ; ( Array access at certain index )
-: isDigit
-      1 SBPA ( stores string location in the bp )
-      1 0 SBPA
-      BEGIN
-            39 1 LBPA @ <
-            58 1 LBPA @ > and
-            0 LBPA and ( check if it is between the correct ascii codes to be a digit )
-            0 SBPA ( store and and return address )
-            1 LBPA 1 + 1 SBPA  ( increment address )
-            1 LBPA @ 0 =
-      UNTIL
 
-      0 LBPA
-; 
+
+
+
