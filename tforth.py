@@ -5,7 +5,7 @@ if len(sys.argv) == 1:
     print("expected tforth.py [filename]")
     exit(1)
 
-code =  open(sys.argv[1],'r').read().replace("\\n","\n")
+code =  open(sys.argv[1],'r').read().replace("\\n","\n").upper()
 
 """
 : CR 10 EMIT ;
@@ -44,10 +44,34 @@ UNTIL
 stk = [0 for i in range(0,16000)]
 
 
-tokens = code.upper().replace('\n'," ").replace('\t'," ").replace('\r'," ").strip().split(" ")
+tokens = []
 
-
-
+buffer = ""
+i=0
+while i < len(code):
+    if(code[i] == "\n" or 
+       code[i] == "\t" or 
+       code[i] == "\r" or
+       code[i] == ' '):
+          if(buffer != ""):
+              tokens.append(buffer)
+              buffer = ""
+          i+=1
+          continue;
+    buffer += code[i]
+    if(code[i] == '"'):
+        tokens.append(buffer)
+        buffer=""
+        i+=1
+        while(code[i] == ' '):
+            i+=1
+        while(code[i] != '"'):
+            buffer += code[i]
+            i+=1
+        i+=1
+        tokens.append(buffer)
+        buffer=""
+    i+=1
 
 for i in range(tokens.count("")):   #remove white space
     tokens.remove("")
@@ -84,22 +108,47 @@ def WRITEMEM(): global stk; op1 = stk.pop(); stk[op1]= stk.pop()
 def SWAP(): global stk; op1 = stk.pop();op2 = stk.pop();stk.append( op1);stk.append( op2)
 def IMPORT():
     global tokens,pc
-    tokens_external = open(tokens[pc],'r').read().replace("\\n","\n").upper().replace('\n'," ").replace('\t'," ").replace('\r'," ").strip().split(" ")
-    for i in range(0,tokens_external.count("")):   #remove white space
-        tokens_external.remove("")
-   
+    code = open(tokens[pc],'r').read().upper()
+    tokens_external = []
+    buffer = ""
+    i=0
+    while i < len(code):
+        if(code[i] == "\n" or 
+           code[i] == "\t" or 
+           code[i] == "\r" or
+           code[i] == ' '):
+              if(buffer != ""):
+                  tokens_external.append(buffer)
+                  buffer = ""
+              i+=1
+              continue;
+        buffer += code[i]
+        if(code[i] == '"'):
+            tokens_external.append(buffer)
+            buffer=""
+            i+=1
+            while(code[i] == ' '):
+                i+=1
+            while(code[i] != '"'):
+                buffer += code[i]
+                i+=1
+            i+=1
+            tokens_external.append(buffer)
+            buffer=""
+        i+=1
+    
     pc-=1
     tokens.pop(pc)
     tokens.pop(pc)
     for i in range(0,len(tokens_external)):
         tokens.insert(pc+i,tokens_external[i])
-   
+
 
 def STRING():
     global string_pointer_counter, tokens,pc, stk
     i = 0
     stk.append(string_pointer_counter)
-    while(tokens[pc][i] != '"'):
+    for i in range(0,len(tokens[pc])):
         stk[string_pointer_counter] = ord(tokens[pc][i])
         string_pointer_counter+=1
         i+=1
@@ -160,7 +209,7 @@ def RKBLK(): # returns to SBLK
 def SKBLK(): # skips block by Jumping to EBLK
     global pc,tokens
     flag_ = 0
-    while(tokens[pc] != "EBLK" or flag_ != 0):
+    while(tokens[pc-1] != "EBLK" or flag_ != 0):
             if(tokens[pc] in user_def_word and
             user_def_word[tokens[pc]]["type"] == "mf" and
             (not (tokens[pc] in user_def_word[tokens[pc]]["exp"])) ):expand_mf() ; pc-=1;
@@ -187,7 +236,7 @@ def SRKBLK(): # returns to SBLK
     global pc,tokens
     flag_ = 0
     
-    while(tokens[pc] != "SBLK" or flag_ != 0):
+    while(tokens[pc-1] != "SBLK" or flag_ != 0):
             if(tokens[pc] in user_def_word and
             user_def_word[tokens[pc]]["type"] == "mf" and
             (not (tokens[pc] in user_def_word[tokens[pc]]["exp"])) ): expand_mf() ; pc+=1
@@ -288,8 +337,10 @@ def eval_forth():
     global pc,stk,primative_words,user_def_word,varible_pointer_counter
     while pc < len(tokens):
         curtok = get_tok()
-        
-        if curtok in user_def_word:
+        if curtok == "RENAME": # gives new name to primatives keeps the old one but that can be over written by defining a userword
+            primative_words[tokens[pc+1]] = primative_words[tokens[pc]]
+            pc+=2
+        elif curtok in user_def_word:
             if(user_def_word[curtok]["type"] == "mf"): # obsolete macro expander
                 pc-=1 # get to name of mf
                 expand_mf()
@@ -325,4 +376,3 @@ eval_forth()
 #print()
 #print(user_def_word)
 #print(stk)
-#print(tokens)
