@@ -40,10 +40,14 @@ BEGIN
 UNTIL
 )
 """
+
 stk = [0 for i in range(0,16000)]
 
 
 tokens = code.upper().replace('\n'," ").replace('\t'," ").replace('\r'," ").strip().split(" ")
+
+
+
 
 for i in range(tokens.count("")):   #remove white space
     tokens.remove("")
@@ -144,26 +148,26 @@ primative_words["EBLK"] = lambda : 0
 def RKBLK(): # returns to SBLK
     global pc,tokens
     flag_ = 0
-    pc-=1
     while(tokens[pc] != "SBLK" or flag_ != 0):
             if(tokens[pc] in user_def_word and
             user_def_word[tokens[pc]]["type"] == "mf" and
             (not (tokens[pc] in user_def_word[tokens[pc]]["exp"])) ): expand_mf() ; pc+=1
-            pc-=1
-            
             if(tokens[pc] == "EBLK"): flag_ +=1            
             if(tokens[pc] == "SBLK"): flag_ -=1
+            if(tokens[pc] == "SBLK" and flag_ == 0): break
+            pc-=1
 
 def SKBLK(): # skips block by Jumping to EBLK
     global pc,tokens
     flag_ = 0
-    while(tokens[pc] != "EBLK"or flag_ != 0):
+    while(tokens[pc] != "EBLK" or flag_ != 0):
             if(tokens[pc] in user_def_word and
             user_def_word[tokens[pc]]["type"] == "mf" and
             (not (tokens[pc] in user_def_word[tokens[pc]]["exp"])) ):expand_mf() ; pc-=1;
-            pc+=1
             if(tokens[pc] == "EBLK"): flag_ -=1
             if(tokens[pc] == "SBLK"): flag_ +=1
+            pc+=1
+
 def RKBLKC(): # returns to SBLK if condition
     global pc,tokens,label_jmp_flag
     if(stk.pop()):
@@ -182,13 +186,18 @@ def SKBLKC(): # skips block by Jumping to EBLK
 def SRKBLK(): # returns to SBLK
     global pc,tokens
     flag_ = 0
+    
     while(tokens[pc] != "SBLK" or flag_ != 0):
             if(tokens[pc] in user_def_word and
             user_def_word[tokens[pc]]["type"] == "mf" and
             (not (tokens[pc] in user_def_word[tokens[pc]]["exp"])) ): expand_mf() ; pc+=1
-            pc-=1
+            
             if(tokens[pc] == "EBLK" ): flag_ +=1
             if(tokens[pc] == "SBLK"and flag_ != 0): flag_ -=1
+            if(tokens[pc] == "SBLK" and flag_ == 0): break
+            pc-=1
+            #print(tokens[pc],flag_)
+            #print(tokens[pc],flag_)
            
 def SSKBLK(): # skips block by Jumping to EBLK
     global pc,tokens
@@ -196,10 +205,12 @@ def SSKBLK(): # skips block by Jumping to EBLK
     while(tokens[pc] != "EBLK"or flag_ != 0):
             if(tokens[pc] in user_def_word and
             user_def_word[tokens[pc]]["type"] == "mf" and
-            (not (tokens[pc] in user_def_word[tokens[pc]]["exp"])) ):expand_mf() ; pc-=1;
-            pc+=1
+            (not (tokens[pc] in user_def_word[tokens[pc]]["exp"])) ): expand_mf() ; pc-=1;
+            
             if(tokens[pc] == "EBLK"and flag_ != 0): flag_ -=1
             if(tokens[pc] == "SBLK" ): flag_ +=1
+            pc+=1
+            #print(tokens[pc])
 def SRKBLKC(): # returns to SBLK if condition
     global pc,tokens,label_jmp_flag
     if(stk.pop()):
@@ -277,13 +288,13 @@ def eval_forth():
     global pc,stk,primative_words,user_def_word,varible_pointer_counter
     while pc < len(tokens):
         curtok = get_tok()
+        
         if curtok in user_def_word:
             if(user_def_word[curtok]["type"] == "mf"): # obsolete macro expander
                 pc-=1 # get to name of mf
                 expand_mf()
             elif user_def_word[curtok]["type"] == "var":
                 stk.append(user_def_word[curtok]["loc"])
-
         elif curtok.isdigit():
             stk.append(int(curtok))
         elif curtok == ":":
@@ -305,13 +316,13 @@ def eval_forth():
             while(tokens[pc] != ')'):
                 pc+=1
             pc+=1
-        elif curtok == ';': # do nothing
+        elif curtok in [';','(',')']: # do nothing
             1+1
         else:
             print(f"User word has not been defined yet: {curtok}")
             exit(-1)
 eval_forth()
-print()
+#print()
 #print(user_def_word)
 #print(stk)
 #print(tokens)
