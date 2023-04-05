@@ -1,33 +1,33 @@
 : CR 10 EMIT ;
-: IF INVERT SKBLKC SBLK ;
-: ELSE SKBLK EBLK SBLK ;
+: IF INVERT SKBLK SBLK ;
+: ELSE SSKBLK EBLK SBLK ;
 : THEN EBLK ;
 
-
 : BEGIN SBLK ;
-: UNTIL EBLK INVERT RKBLKC ;
+: UNTIL  INVERT SRKBLKC EBLK ;
 
-: WHILE  SBLK INVERT SKBLKC  ;
+: COND SBLK ;
 
 
+: WHILE INVERT SSKBLKC ;
 
-: REPEAT    SRKBLK EBLK ;
+: REPEAT SRKBLK EBLK ;
 
-( Syntax 
-	EX [condition] WHILE REPEAT
+( Syntax
+      EX [condition] WHILE REPEAT
 )
 
 
-: DUP2 DUP PSH SWAP DUP PSH SWAP POP POP ; ( duplicates 2 items on the stack )
+: DUP2 DUP >r SWAP DUP >r SWAP r> r> ; ( duplicates 2 items on the stack )
 
 : FOR SBLK SWAP 1 +  DUP2 < INVERT SKBLKC ;
 
-( Syntax 
-	 [start num] [end num] FOR REPEAT
+( Syntax
+       [start num] [end num] FOR REPEAT
 )
 
 
-: GFI DUP 1 - ; ( Gets the index of the For loop currently )
+: GFI DUP 1 - ; ( Gets the index of the For loop currently  )
 
 
 : DO ! ! LBL ;
@@ -35,30 +35,31 @@
      DUP DUP ( duplicates index VARIABLE )
      @ 1 + SWAP ! ( Increment index )
      @ SWAP @ < ( Compare )
-	 BC ( Branch )
+       BC ( Branch )
 ;
 
-( Syntax 
+( Syntax
 
 [value] [start varible] [value] [end varible] do
-	[start varible] [end varible]
-	LOOP
+      [start varible] [end varible]
+      LOOP
 )
 
 
 
 : PRINT 1 - 
-	BEGIN 
+	BEGIN
 		1 + 
-		DUP @  EMIT 
-		DUP @ 0 = 
-UNTIL ;
+		DUP @ EMIT 
+		DUP @ 0 =
+	UNTIL 
+;
 
 : dps DUP . CR ; ( debug printer )
 
 
-: INC ( Increments varible by ) DUP PSH @ + POP ! ; ( [inc ammt] [memloc] INC )
-: DEC ( Increments varible by ) DUP PSH @ - POP ! ; ( [dec ammt] [memloc] DEC )
+: INC ( Increments varible by ) DUP >r @ + r> ! ; ( [inc ammt] [memloc] INC )
+: DEC ( Increments varible by ) DUP >r @ - r> ! ; ( [dec ammt] [memloc] DEC )
 
 ( temp stack functions for stuff I want to save )
 
@@ -68,8 +69,8 @@ VARIABLE bp ( bp[0] will ussually be the return )
 7500 sp !
 7000 bp !
 
-: PSH sp @ ! sp @ 1 + sp ! ( Increment stack ) ;
-: POP sp @ 1 - sp ! ( decrement stack ) sp @ @ ;
+: >r sp @ ! sp @ 1 + sp ! ( Increment stack ) ;
+: r> sp @ 1 - sp ! ( decrement stack ) sp @ @ ;
 : LBPA bp + @ ; ( [mem_loc] LDBA )
 : SBPA bp + ! ; ( [mem_loc] [offset] SDBA )
 VARIABLE array_area_start
@@ -82,18 +83,18 @@ VARIABLE array_area_start
 : { ;
 : } ;
 
-: ARRACK + @; ( Array access at certain index )
-: isDigit 
-	1 SBPA ( stores string location in the bp )
-	1 0 SBPA 
-	BEGIN
-		39 1 LBPA @ < 
-		58 1 LBPA @ > and 
-		0 LBPA and ( check if it is between the correct ascii codes to be a digit )
-		0 SBPA ( store and and return address )
-		1 LBPA 1 + 1 SBPA  ( increment address )
-		1 LBPA @ 0 =
-	UNTIL
+: ARRACK + @ ; ( Array access at certain index )
+: isDigit
+      1 SBPA ( stores string location in the bp )
+      1 0 SBPA
+      BEGIN
+            39 1 LBPA @ <
+            58 1 LBPA @ > and
+            0 LBPA and ( check if it is between the correct ascii codes to be a digit )
+            0 SBPA ( store and and return address )
+            1 LBPA 1 + 1 SBPA  ( increment address )
+            1 LBPA @ 0 =
+      UNTIL
 
-	0 LBPA
+      0 LBPA
 ; 
