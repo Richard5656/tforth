@@ -366,11 +366,13 @@ def eval_forth():
             varible_pointer_counter+=1
         elif curtok in primative_words:
             primative_words[curtok]()
-        elif curtok == "D:":
+        elif curtok == "C:":
             name = tokens[pc]
             pc+=2 # skip word name and "
             user_def_word[name] = {"type": "compile_word", "str":tokens[pc]}
             pc+=1 # skip ;
+        elif curtok == ".C":
+            _code+=str(stk.pop())
         elif curtok == '(':
             while(tokens[pc] != ')'):
                 pc+=1
