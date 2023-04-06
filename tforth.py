@@ -1,11 +1,12 @@
-import sys
 
+import sys
+_code =""
 
 if len(sys.argv) == 1:
     print("expected tforth.py [filename]")
     exit(1)
 
-code =  open(sys.argv[1],'r').read().replace("\\n","\n").upper()
+code =  open(sys.argv[1],'r').read().replace("\\n","\n")
 
 """
 : CR 10 EMIT ;
@@ -28,8 +29,6 @@ DO
     i @ . CR
      end i 
 LOOP
-
-
 VARIABLE vtest
 0 vtest !
 (
@@ -54,7 +53,7 @@ while i < len(code):
        code[i] == "\r" or
        code[i] == ' '):
           if(buffer != ""):
-              tokens.append(buffer)
+              tokens.append(buffer.upper())
               buffer = ""
           i+=1
           continue;
@@ -118,7 +117,7 @@ def IMPORT():
            code[i] == "\r" or
            code[i] == ' '):
               if(buffer != ""):
-                  tokens_external.append(buffer)
+                  tokens_external.append(buffer.upper())
                   buffer = ""
               i+=1
               continue;
@@ -334,7 +333,7 @@ def expand_mf():
 #eval mode
 def eval_forth():
  
-    global pc,stk,primative_words,user_def_word,varible_pointer_counter
+    global pc,stk,primative_words,user_def_word,varible_pointer_counter,_code
     while pc < len(tokens):
         curtok = get_tok()
         if curtok == "RENAME": # gives new name to primatives keeps the old one but that can be over written by defining a userword
@@ -346,6 +345,10 @@ def eval_forth():
                 expand_mf()
             elif user_def_word[curtok]["type"] == "var":
                 stk.append(user_def_word[curtok]["loc"])
+            elif user_def_word[curtok]["type"] == "compile_word":
+                _code += user_def_word[curtok]["str"]
+        
+        
         elif curtok.isdigit():
             stk.append(int(curtok))
         elif curtok == ":":
@@ -363,6 +366,11 @@ def eval_forth():
             varible_pointer_counter+=1
         elif curtok in primative_words:
             primative_words[curtok]()
+        elif curtok == "D:":
+            name = tokens[pc]
+            pc+=2 # skip word name and "
+            user_def_word[name] = {"type": "compile_word", "str":tokens[pc]}
+            pc+=1 # skip ;
         elif curtok == '(':
             while(tokens[pc] != ')'):
                 pc+=1
@@ -373,6 +381,7 @@ def eval_forth():
             print(f"User word has not been defined yet: {curtok}")
             exit(-1)
 eval_forth()
+print(_code)
 #print()
 #print(user_def_word)
 #print(stk)
